@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get comments for non-existent artwork",
+      "method": "POST",
+      "body": {
+        "action": "get_comments",
+        "artworkId": 9999
+      },
+      "expectedStatus": 200,
+      "expectedBody": [],
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Get forum threads",
+      "method": "GET",
+      "expectedStatus": 200,
+      "expectedBody": [],
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create thread",
+      "method": "POST",
+      "body": {
+        "action": "create_thread",
+        "userId": 1,
+        "title": "Test Discussion",
+        "content": "This is a test thread",
+        "threadType": "discussion",
+        "tags": ["test"]
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "title": "string",
+        "content": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,18 +1,92 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/lib/auth-context';
+import { authAPI } from '@/lib/api';
 import Icon from '@/components/ui/icon';
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1500);
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      const data = await authAPI.login(email, password);
+      
+      if (data.error) {
+        toast({
+          title: 'Ошибка входа',
+          description: data.error,
+          variant: 'destructive',
+        });
+      } else {
+        login(data.user, data.token);
+        toast({
+          title: 'Добро пожаловать!',
+          description: `Вы вошли как ${data.user.username}`,
+        });
+        navigate('/');
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось войти в систему',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('reg-email') as string;
+    const password = formData.get('reg-password') as string;
+    const username = formData.get('name') as string;
+
+    try {
+      const data = await authAPI.register(email, password, username);
+      
+      if (data.error) {
+        toast({
+          title: 'Ошибка регистрации',
+          description: data.error,
+          variant: 'destructive',
+        });
+      } else {
+        login(data.user, data.token);
+        toast({
+          title: 'Аккаунт создан!',
+          description: `Добро пожаловать, ${data.user.username}!`,
+        });
+        navigate('/');
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось создать аккаунт',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,11 +109,12 @@ export default function Auth() {
           </TabsList>
 
           <TabsContent value="login">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="art@example.com"
                   required
@@ -49,6 +124,7 @@ export default function Auth() {
                 <Label htmlFor="password">Пароль</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   placeholder="••••••••"
                   required
@@ -87,11 +163,12 @@ export default function Auth() {
           </TabsContent>
 
           <TabsContent value="register">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Имя</Label>
                 <Input
                   id="name"
+                  name="name"
                   type="text"
                   placeholder="Иван Иванов"
                   required
@@ -101,6 +178,7 @@ export default function Auth() {
                 <Label htmlFor="reg-email">Email</Label>
                 <Input
                   id="reg-email"
+                  name="reg-email"
                   type="email"
                   placeholder="art@example.com"
                   required
@@ -110,6 +188,7 @@ export default function Auth() {
                 <Label htmlFor="reg-password">Пароль</Label>
                 <Input
                   id="reg-password"
+                  name="reg-password"
                   type="password"
                   placeholder="••••••••"
                   required
